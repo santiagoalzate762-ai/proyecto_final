@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutor de Programación IA</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .chat-container { width: 100%; max-width: 600px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; flex-direction: column; height: 80vh; }
+        .header { background: #1e293b; color: white; padding: 15px; border-top-left-radius: 12px; border-top-right-radius: 12px; font-weight: bold; text-align: center; }
+        .chat-box { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .mensaje { padding: 10px 15px; border-radius: 8px; max-width: 80%; line-height: 1.4; word-break: break-word; }
+        .usuario { background: #3b82f6; color: white; align-self: flex-end; }
+        .tutor { background: #e2e8f0; color: #1e293b; align-self: flex-start; }
+        .input-area { display: flex; padding: 15px; border-top: 1px solid #e2e8f0; gap: 10px; }
+        input { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 16px; }
+        button { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #059669; }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="header">👨‍💻 Profesor de Programación IA</div>
+    <div class="chat-box" id="chatBox">
+        <div class="mensaje tutor">¡Hola! Soy tu tutor de programación. ¿Qué lenguaje estás aprendiendo hoy o qué error de código quieres que revisemos?</div>
+    </div>
+    <div class="input-area">
+        <input type="text" id="userInput" placeholder="Escribe tu duda o tu código aquí..." onkeypress="evaluarEnter(event)">
+        <button onclick="enviarMensaje()">Enviar</button>
+    </div>
+</div>
+
+<script>
+    // Guardará la conversación de la sesión para mantener la memoria del chat
+    let historialConversacion = [];
+
+    async function enviarMensaje() {
+        const input = document.getElementById('userInput');
+        const textoUsuario = input.value.trim();
+        if (!textoUsuario) return;
+
+        // 1. Limpiar el input y mostrar el mensaje del alumno en la pantalla
+        input.value = '';
+        actualizarInterfaz(textoUsuario, 'usuario');
+
+        // 2. Guardar en el historial interno
+        historialConversacion.push({ role: 'user', content: textoUsuario });
+
+        try {
+            // 3. Conectar con el backend en el puerto 3000 que ya tienes encendido
+            const response = await fetch('http://localhost:3000/api/tutor', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ historialMensajes: historialConversacion })
+            });
+
+            const data = await response.json();
+            const respuestaTutor = data.respuesta;
+
+            // 4. Guardar la respuesta del profesor en el historial y pintarla en la web
+            historialConversacion.push({ role: 'assistant', content: respuestaTutor });
+            actualizarInterfaz(respuestaTutor, 'tutor');
+
+        } catch (error) {
+            console.error("Error:", error);
+            actualizarInterfaz("Lo siento, no pude conectar con mi servidor. Asegúrate de que Ollama y tu backend estén corriendo.", 'tutor');
+        }
+    }
+
+    function actualizarInterfaz(texto, autor) {
+        const chatBox = document.getElementById('chatBox');
+        const div = document.createElement('div');
+        div.classList.add('mensaje', autor);
+        div.innerText = texto;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll hacia abajo
+    }
+
+    function evaluarEnter(event) {
+        if (event.key === 'Enter') enviarMensaje();
+    }
+</script>
+
+</body>
+</html>
