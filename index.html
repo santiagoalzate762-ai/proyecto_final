@@ -32,7 +32,6 @@
 </div>
 
 <script>
-    // Guardará la conversación de la sesión para mantener la memoria del chat
     let historialConversacion = [];
 
     async function enviarMensaje() {
@@ -40,16 +39,14 @@
         const textoUsuario = input.value.trim();
         if (!textoUsuario) return;
 
-        // 1. Limpiar el input y mostrar el mensaje del alumno en la pantalla
         input.value = '';
         actualizarInterfaz(textoUsuario, 'usuario');
 
-        // 2. Guardar en el historial interno
         historialConversacion.push({ role: 'user', content: textoUsuario });
 
         try {
-            // 3. Conectar con el backend en el puerto 3000 que ya tienes encendido
-            const response = await fetch('http://localhost:3000/api/tutor', {
+            // Usamos una ruta relativa para que funcione tanto en Vercel como en localhost automáticamente
+            const response = await fetch('/api/tutor', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ historialMensajes: historialConversacion })
@@ -58,7 +55,6 @@
             const data = await response.json();
             const respuestaTutor = data.respuesta;
 
-            // 4. Guardar la respuesta del profesor en el historial y pintarla en la web
             historialConversacion.push({ role: 'assistant', content: respuestaTutor });
             actualizarInterfaz(respuestaTutor, 'tutor');
 
@@ -74,7 +70,7 @@
         div.classList.add('mensaje', autor);
         div.innerText = texto;
         chatBox.appendChild(div);
-        chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll hacia abajo
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     function evaluarEnter(event) {

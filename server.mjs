@@ -1,10 +1,21 @@
 import express from 'express';
 import cors from 'cors';
 import { Ollama } from 'ollama';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Configuración de rutas para servir el Frontend de forma estática
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 app.use(cors()); 
 app.use(express.json());
+
+// Ruta GET para la raíz: Sirve tu archivo index.html automáticamente al entrar al enlace
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 const ollama = new Ollama({ host: 'http://localhost:11434' });
 
